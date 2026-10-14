@@ -1,0 +1,26 @@
+{
+  "study": {
+    "close": ["Discord.exe", "Steam.exe", "Spotify.exe"],
+    "open_urls": ["https://www.perplexity.ai/", "https://onq.queensu.ca/"],
+    "power_plan": "Balanced"
+  },
+  "gaming": {
+    "confirm_before_apply": true,
+    "close_apps": [
+      "msedge.exe",
+      "outlook.exe",
+      "olk.exe",
+      "winword.exe",
+      "excel.exe",
+      "powerpnt.exe",
+      "onenote.exe",
+      "teams.exe",
+      "spotify.exe"
+    ],
+    "launch_apps": [
+      "Discord.exe"
+    ],
+    "open_settings": "ms-settings:sound",
+    "power_plan": "High performance"
+  }
+}
