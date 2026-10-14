@@ -247,6 +247,37 @@ function Confirm-AndCloseOptionalApps {
 
     return $closedMemoryMB
 }
+function Write-ModeLog {
+    param(
+        [string]$ModeName,
+        [double]$FreedMemoryMB
+    )
+
+    $logsFolder = Join-Path $PSScriptRoot "logs"
+    $logFile = Join-Path $logsFolder "mode-history.csv"
+
+    if (-not (Test-Path $logsFolder)) {
+        New-Item -Path $logsFolder -ItemType Directory -Force | Out-Null
+    }
+
+    $entry = [PSCustomObject]@{
+        Timestamp           = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Mode                = $ModeName
+        EstimatedFreedMB    = $FreedMemoryMB
+        EstimatedFreedGB    = [math]::Round($FreedMemoryMB / 1024, 2)
+        ComputerName        = $env:COMPUTERNAME
+    }
+
+    if (Test-Path $logFile) {
+        $entry | Export-Csv -Path $logFile -NoTypeInformation -Append
+    }
+    else {
+        $entry | Export-Csv -Path $logFile -NoTypeInformation
+    }
+
+    Write-Host "Saved mode history to: $logFile" -ForegroundColor DarkGray
+}
+
 # =============================================
 # Main
 # =============================================
@@ -302,5 +333,6 @@ if ($config.OpenSoundSettings) {
 }
 
 Write-Host "Estimated RAM released: $estimatedFreedMB MB" -ForegroundColor Cyan
+Write-ModeLog -ModeName $Mode -FreedMemoryMB $estimatedFreedMB
 Write-Host ""
 Write-Host "$Mode Mode is active." -ForegroundColor Green
