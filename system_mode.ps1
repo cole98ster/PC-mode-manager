@@ -36,6 +36,9 @@ $gamingAppsToClose = @(
     "teams",
     "spotify"
 )
+$appsToAskBeforeClosing = @(
+    "code"
+)
 
 $modeConfig = @{
     Study = @{
@@ -184,7 +187,66 @@ function Open-SoundSettings {
         Write-Warning "Could not open Windows Sound Settings."
     }
 }
+function Get-ProcessMemoryMB {
+    param(
+        [array]$Processes
+    )
 
+    $totalBytes = 0
+
+    foreach ($process in $Processes) {
+        try {
+            $process.Refresh()
+            $totalBytes += $process.WorkingSet64
+        }
+        catch {
+            Write-Warning "Could not read memory for $($process.ProcessName)."
+        }
+    }
+
+    return [math]::Round($totalBytes / 1MB, 1)
+}
+
+function Confirm-AndCloseOptionalApps {
+    param(
+        [string[]]$ProcessNames
+    )
+
+    $closedMemoryMB = 0
+
+    foreach ($name in $ProcessNames) {
+        $processes = @(Get-Process -Name $name -ErrorAction SilentlyContinue)
+
+        if ($processes.Count -eq 0) {
+            continue
+        }
+
+        $memoryMB = [math]::Round(
+            (($processes | Measure-Object -Property WorkingSet64 -Sum).Sum / 1MB),
+            1
+        )
+
+        $answer = Read-Host `
+            "VS Code has $($processes.Count) processes using $memoryMB MB. Close all VS Code processes? Type Y or N"
+
+        if ($answer -match "^(Y|YES)$") {
+            try {
+                Stop-Process -Name $name -ErrorAction Stop
+                $closedMemoryMB += $memoryMB
+
+                Write-Host "Closed all VS Code processes." -ForegroundColor Green
+            }
+            catch {
+                Write-Warning "Could not close all VS Code processes."
+            }
+        }
+        else {
+            Write-Host "Kept VS Code open." -ForegroundColor Yellow
+        }
+    }
+
+    return $closedMemoryMB
+}
 # =============================================
 # Main
 # =============================================
@@ -214,7 +276,16 @@ if ($confirmation -cne "YES") {
     exit
 }
 
+$estimatedFreedMB = Get-ProcessMemoryMB -Processes $runningProcesses
+
+Write-Host ""
+Write-Host "Estimated RAM to be released: $estimatedFreedMB MB" -ForegroundColor Cyan
+
 Close-ConfiguredProcesses -Processes $runningProcesses
+$optionalFreedMB = Confirm-AndCloseOptionalApps `
+    -ProcessNames $appsToAskBeforeClosing
+
+$estimatedFreedMB += $optionalFreedMB
 
 Start-Sleep -Seconds 2
 
@@ -230,5 +301,6 @@ if ($config.OpenSoundSettings) {
     Open-SoundSettings
 }
 
+Write-Host "Estimated RAM released: $estimatedFreedMB MB" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "$Mode Mode is active." -ForegroundColor Green
