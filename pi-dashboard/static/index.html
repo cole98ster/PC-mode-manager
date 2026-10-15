@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>PC Mode Manager Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <main class="container">
+    <header>
+      <div>
+        <p class="eyebrow">Raspberry Pi Dashboard</p>
+        <h1>PC Mode Manager</h1>
+        <p class="subtitle">Recent Study and Gaming mode activations.</p>
+      </div>
+      <button id="refresh-button" type="button">Refresh</button>
+    </header>
+
+    <p id="status" class="status">Loading dashboard data...</p>
+
+    <section class="cards">
+      <article class="card">
+        <span>Total activations</span>
+        <strong id="total-activations">--</strong>
+      </article>
+      <article class="card">
+        <span>Study activations</span>
+        <strong id="study-activations">--</strong>
+      </article>
+      <article class="card">
+        <span>Gaming activations</span>
+        <strong id="gaming-activations">--</strong>
+      </article>
+      <article class="card">
+        <span>Latest mode</span>
+        <strong id="latest-mode">--</strong>
+      </article>
+    </section>
+
+    <section class="latest-event">
+      <h2>Latest event</h2>
+      <p id="latest-details">No events received yet.</p>
+    </section>
+
+    <section>
+      <h2>Event history</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Timestamp</th>
+              <th>Mode</th>
+              <th>Estimated RAM freed</th>
+              <th>Computer</th>
+            </tr>
+          </thead>
+          <tbody id="events-table">
+            <tr>
+              <td colspan="4">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
