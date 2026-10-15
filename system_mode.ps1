@@ -6,67 +6,38 @@ param(
     [switch]$Apply
 )
 
-# =============================================
-# System Mode Manager - Windows-only v1
-# =============================================
-
 $studyAppsToClose = @(
-    "msedge",
-    "outlook",
-    "olk",
-    "winword",
-    "excel",
-    "powerpnt",
-    "onenote",
-    "teams",
-    "discord",
-    "steam",
-    "steamwebhelper",
-    "spotify"
+    "msedge", "outlook", "olk", "winword", "excel", "powerpnt",
+    "onenote", "teams", "discord", "steam", "steamwebhelper", "spotify"
 )
 
 $gamingAppsToClose = @(
-    "msedge",
-    "outlook",
-    "olk",
-    "winword",
-    "excel",
-    "powerpnt",
-    "onenote",
-    "teams",
-    "spotify"
+    "msedge", "outlook", "olk", "winword", "excel", "powerpnt",
+    "onenote", "teams", "spotify"
 )
-$appsToAskBeforeClosing = @(
-    "code"
-)
+
+$appsToAskBeforeClosing = @("code")
 
 $modeConfig = @{
     Study = @{
         CloseApps = $studyAppsToClose
-
         EdgeUrls = @(
             "https://www.perplexity.ai/",
             "https://onq.queensu.ca/"
         )
-
         LaunchDiscord = $false
         OpenSoundSettings = $false
     }
-
     Gaming = @{
         CloseApps = $gamingAppsToClose
-
         EdgeUrls = @()
-
         LaunchDiscord = $true
         OpenSoundSettings = $true
     }
 }
 
 function Get-ConfiguredRunningProcesses {
-    param(
-        [string[]]$ProcessNames
-    )
+    param([string[]]$ProcessNames)
 
     $processes = @()
 
@@ -74,7 +45,7 @@ function Get-ConfiguredRunningProcesses {
         $processes += Get-Process -Name $name -ErrorAction SilentlyContinue
     }
 
-    return $processes
+    return @($processes)
 }
 
 function Show-ModePreview {
@@ -86,7 +57,7 @@ function Show-ModePreview {
 
     Write-Host ""
     Write-Host "$SelectedMode Mode Preview" -ForegroundColor Cyan
-    Write-Host "===================" -ForegroundColor Cyan
+    Write-Host "-------------------" -ForegroundColor Cyan
 
     if ($Processes.Count -gt 0) {
         Write-Host ""
@@ -94,12 +65,8 @@ function Show-ModePreview {
 
         $Processes |
             Sort-Object ProcessName, Id |
-            Select-Object ProcessName, Id, @{
-                Name = "MemoryMB"
-                Expression = {
-                    [math]::Round($_.WorkingSet64 / 1MB, 1)
-                }
-            } |
+            Select-Object ProcessName, Id, Name,
+                @{Name = "MemoryMB"; Expression = { [math]::Round($_.WorkingSet64 / 1MB, 1) }} |
             Format-Table -AutoSize
     }
     else {
@@ -112,27 +79,25 @@ function Show-ModePreview {
         Write-Host "Edge pages that would open:" -ForegroundColor Yellow
 
         foreach ($url in $Config.EdgeUrls) {
-            Write-Host "- $url"
+            Write-Host " - $url"
         }
     }
 
     if ($Config.LaunchDiscord) {
         Write-Host ""
         Write-Host "Application that would open:" -ForegroundColor Yellow
-        Write-Host "- Discord"
+        Write-Host " - Discord"
     }
 
     if ($Config.OpenSoundSettings) {
         Write-Host ""
         Write-Host "Windows Settings page that would open:" -ForegroundColor Yellow
-        Write-Host "- Sound"
+        Write-Host " - Sound"
     }
 }
 
 function Close-ConfiguredProcesses {
-    param(
-        [array]$Processes
-    )
+    param([array]$Processes)
 
     foreach ($process in $Processes) {
         try {
@@ -146,9 +111,7 @@ function Close-ConfiguredProcesses {
 }
 
 function Open-StudyEdgePages {
-    param(
-        [string[]]$Urls
-    )
+    param([string[]]$Urls)
 
     foreach ($url in $Urls) {
         try {
@@ -187,12 +150,11 @@ function Open-SoundSettings {
         Write-Warning "Could not open Windows Sound Settings."
     }
 }
-function Get-ProcessMemoryMB {
-    param(
-        [array]$Processes
-    )
 
-    $totalBytes = 0
+function Get-ProcessMemoryMB {
+    param([array]$Processes)
+
+    [double]$totalBytes = 0
 
     foreach ($process in $Processes) {
         try {
@@ -208,11 +170,9 @@ function Get-ProcessMemoryMB {
 }
 
 function Confirm-AndCloseOptionalApps {
-    param(
-        [string[]]$ProcessNames
-    )
+    param([string[]]$ProcessNames)
 
-    $closedMemoryMB = 0
+    [double]$closedMemoryMB = 0
 
     foreach ($name in $ProcessNames) {
         $processes = @(Get-Process -Name $name -ErrorAction SilentlyContinue)
@@ -226,14 +186,12 @@ function Confirm-AndCloseOptionalApps {
             1
         )
 
-        $answer = Read-Host `
-            "VS Code has $($processes.Count) processes using $memoryMB MB. Close all VS Code processes? Type Y or N"
+        $answer = Read-Host "VS Code has $($processes.Count) process(es) using $memoryMB MB. Close all VS Code processes? Type Y or N"
 
         if ($answer -match "^(Y|YES)$") {
             try {
                 Stop-Process -Name $name -ErrorAction Stop
                 $closedMemoryMB += $memoryMB
-
                 Write-Host "Closed all VS Code processes." -ForegroundColor Green
             }
             catch {
@@ -247,6 +205,7 @@ function Confirm-AndCloseOptionalApps {
 
     return $closedMemoryMB
 }
+
 function Write-ModeLog {
     param(
         [string]$ModeName,
@@ -261,41 +220,64 @@ function Write-ModeLog {
     }
 
     $entry = [PSCustomObject]@{
-        Timestamp           = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-        Mode                = $ModeName
-        EstimatedFreedMB    = $FreedMemoryMB
-        EstimatedFreedGB    = [math]::Round($FreedMemoryMB / 1024, 2)
-        ComputerName        = $env:COMPUTERNAME
+        Timestamp         = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        Mode              = $ModeName
+        EstimatedFreedMB  = $FreedMemoryMB
+        EstimatedFreedGB  = [math]::Round($FreedMemoryMB / 1024, 2)
+        ComputerName      = $env:COMPUTERNAME
     }
 
-    if (Test-Path $logFile) {
-        $entry | Export-Csv -Path $logFile -NoTypeInformation -Append
-    }
-    else {
-        $entry | Export-Csv -Path $logFile -NoTypeInformation
-    }
-
-    Write-Host "Saved mode history to: $logFile" -ForegroundColor DarkGray
+    $entry | Export-Csv -Path $logFile -NoTypeInformation -Append
+    Write-Host "Saved mode history to $logFile" -ForegroundColor DarkGray
 }
 
-# =============================================
-# Main
-# =============================================
+function Send-ModeEventToPi {
+    param(
+        [string]$ModeName,
+        [double]$FreedMemoryMB
+    )
+
+    $configPath = Join-Path $PSScriptRoot "config.local.ps1"
+
+    if (-not (Test-Path $configPath)) {
+        Write-Warning "Pi configuration was not found. Local CSV was still saved."
+        return
+    }
+
+    . $configPath
+
+    if ([string]::IsNullOrWhiteSpace($PiApiUrl)) {
+        Write-Warning "PiApiUrl is missing in config.local.ps1. Local CSV was still saved."
+        return
+    }
+
+    $event = @{
+        timestamp        = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+        mode             = $ModeName
+        estimatedfreedmb = $FreedMemoryMB
+        estimatedfreedgb = [math]::Round($FreedMemoryMB / 1024, 2)
+        computername     = $env:COMPUTERNAME
+    } | ConvertTo-Json
+
+    try {
+        $response = Invoke-RestMethod -Uri $PiApiUrl -Method Post -ContentType "application/json" -Body $event -ErrorAction Stop
+        Write-Host "Pi dashboard updated: $($response.received)" -ForegroundColor Green
+    }
+    catch {
+        Write-Warning "Could not send the mode event to the Pi. Local CSV was still saved."
+    }
+}
 
 $config = $modeConfig[$Mode]
-
 $runningProcesses = Get-ConfiguredRunningProcesses -ProcessNames $config.CloseApps
 
-Show-ModePreview `
-    -SelectedMode $Mode `
-    -Config $config `
-    -Processes $runningProcesses
+Show-ModePreview -SelectedMode $Mode -Config $config -Processes $runningProcesses
 
 if (-not $Apply) {
     Write-Host ""
-    Write-Host "Dry run only: nothing was changed." -ForegroundColor Green
+    Write-Host "Dry run only; nothing was changed." -ForegroundColor Green
     Write-Host "Run this to apply the selected mode:" -ForegroundColor Cyan
-    Write-Host ".\system-mode.ps1 -Mode $Mode -Apply"
+    Write-Host ".\system_mode.ps1 -Mode $Mode -Apply"
     exit
 }
 
@@ -313,9 +295,8 @@ Write-Host ""
 Write-Host "Estimated RAM to be released: $estimatedFreedMB MB" -ForegroundColor Cyan
 
 Close-ConfiguredProcesses -Processes $runningProcesses
-$optionalFreedMB = Confirm-AndCloseOptionalApps `
-    -ProcessNames $appsToAskBeforeClosing
 
+$optionalFreedMB = Confirm-AndCloseOptionalApps -ProcessNames $appsToAskBeforeClosing
 $estimatedFreedMB += $optionalFreedMB
 
 Start-Sleep -Seconds 2
@@ -333,6 +314,9 @@ if ($config.OpenSoundSettings) {
 }
 
 Write-Host "Estimated RAM released: $estimatedFreedMB MB" -ForegroundColor Cyan
+
 Write-ModeLog -ModeName $Mode -FreedMemoryMB $estimatedFreedMB
+Send-ModeEventToPi -ModeName $Mode -FreedMemoryMB $estimatedFreedMB
+
 Write-Host ""
 Write-Host "$Mode Mode is active." -ForegroundColor Green

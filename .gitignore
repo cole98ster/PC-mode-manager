@@ -1,0 +1,13 @@
+# Local telemetry and generated logs
+logs/*.csv
+logs/*.log
+!logs/mode-history.example.csv
+
+# Private machine-specific configuration
+config.local.ps1
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.env
