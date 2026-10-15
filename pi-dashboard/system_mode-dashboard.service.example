@@ -1,0 +1,15 @@
+[Unit]
+Description=PC Mode Manager Dashboard
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=YOUR_PI_USERNAME
+WorkingDirectory=/home/YOUR_PI_USERNAME/system_mode-dashboard/pi-dashboard
+ExecStart=/home/YOUR_PI_USERNAME/system_mode-dashboard/.venv/bin/python -m uvicorn app:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

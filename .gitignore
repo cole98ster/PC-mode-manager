@@ -11,3 +11,8 @@ config.local.ps1
 __pycache__/
 *.pyc
 .env
+
+# Raspberry Pi dashboard runtime data
+pi-dashboard/data/*.csv
+pi-dashboard/data/*.db
+!pi-dashboard/data/.gitkeep
