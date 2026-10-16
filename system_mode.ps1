@@ -23,7 +23,8 @@ $modeConfig = @{
         CloseApps = $studyAppsToClose
         EdgeUrls = @(
             "https://www.perplexity.ai/",
-            "https://onq.queensu.ca/"
+            "https://onq.queensu.ca/",
+            "https://notability.com/app"
         )
         LaunchDiscord = $false
         OpenSoundSettings = $false
