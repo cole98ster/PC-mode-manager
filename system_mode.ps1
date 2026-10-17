@@ -252,7 +252,7 @@ function Send-ModeEventToPi {
         return
     }
 
-    $event = @{
+    $event1 = @{
         timestamp        = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
         mode             = $ModeName
         estimatedfreedmb = $FreedMemoryMB
@@ -261,7 +261,7 @@ function Send-ModeEventToPi {
     } | ConvertTo-Json
 
     try {
-        $response = Invoke-RestMethod -Uri $PiApiUrl -Method Post -ContentType "application/json" -Body $event -ErrorAction Stop
+        $response = Invoke-RestMethod -Uri $PiApiUrl -Method Post -ContentType "application/json" -Body $event1 -ErrorAction Stop
         Write-Host "Pi dashboard updated: $($response.received)" -ForegroundColor Green
     }
     catch {
